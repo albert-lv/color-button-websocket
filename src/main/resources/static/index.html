@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Color Changing Button - Event Driven Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        #colorButton {
+            padding: 20px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            background-color: #FF0000;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+        #colorButton:hover {
+            opacity: 0.9;
+        }
+        .api-button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            margin: 5px;
+        }
+        .api-button:hover {
+            background-color: #0056b3;
+        }
+        #status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        #log {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Color Button Event Demo</h1>
+        
+        <div class="section">
+            <h2>WebSocket Demo</h2>
+            <button id="colorButton">Change Color via WebSocket</button>
+            <div id="status">WebSocket Status: Connecting...</div>
+        </div>
+
+        <div class="section">
+            <h2>REST API Demo</h2>
+            <button class="api-button" onclick="getCurrentColor()">Get Current Color</button>
+            <button class="api-button" onclick="triggerNextColor()">Trigger Next Color</button>
+            <button class="api-button" onclick="triggerRandomColor()">Random Color Event</button>
+        </div>
+
+        <div class="section">
+            <h2>Event Log</h2>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const button = document.getElementById('colorButton');
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+
+        function addLogEntry(message) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            logDiv.insertBefore(entry, logDiv.firstChild);
+        }
+
+        // WebSocket Connection
+        const socket = new WebSocket('ws://' + window.location.host + '/color-button/color-websocket');
+
+        socket.onopen = function(event) {
+            statusDiv.textContent = 'WebSocket Status: Connected';
+            statusDiv.className = 'connected';
+            addLogEntry('WebSocket connected');
+        };
+
+        socket.onmessage = function(event) {
+            button.style.backgroundColor = event.data;
+            addLogEntry(`Color changed to: ${event.data}`);
+        };
+
+        socket.onerror = function(error) {
+            statusDiv.textContent = 'WebSocket Status: Error';
+            statusDiv.className = 'disconnected';
+            addLogEntry('WebSocket error occurred');
+            console.error('WebSocket error:', error);
+        };
+
+        socket.onclose = function(event) {
+            statusDiv.textContent = 'WebSocket Status: Disconnected';
+            statusDiv.className = 'disconnected';
+            addLogEntry('WebSocket disconnected');
+        };
+
+        button.onclick = function() {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send('change');
+                addLogEntry('Sent color change request via WebSocket');
+            }
+        };
+
+        // REST API Functions
+        async function getCurrentColor() {
+            try {
+                const response = await fetch('/color-button/api/color/current');
+                const data = await response.json();
+                addLogEntry(`Current color (via REST): ${data.color}`);
+            } catch (error) {
+                addLogEntry('Error getting current color: ' + error.message);
+            }
+        }
+
+        async function triggerNextColor() {
+            try {
+                const response = await fetch('/color-button/api/color/next', { method: 'POST' });
+                const data = await response.json();
+                addLogEntry(`Triggered next color (via REST): ${data.color}`);
+            } catch (error) {
+                addLogEntry('Error triggering next color: ' + error.message);
+            }
+        }
+
+        async function triggerRandomColor() {
+            try {
+                const response = await fetch('/color-button/api/color/random', { method: 'POST' });
+                const data = await response.json();
+                addLogEntry(`Triggered random color event (via EventBridge): ${data.color}`);
+            } catch (error) {
+                addLogEntry('Error triggering random color: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

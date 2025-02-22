@@ -1,0 +1,24 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /color-button
+
+spring:
+  application:
+    name: color-button-websocket
+
+aliyun:
+  accessKeyId: YOUR_ACCESS_KEY_ID
+  accessKeySecret: YOUR_ACCESS_KEY_SECRET
+  eventbridge:
+    endpoint: 1946050487346313.eventbridge.cn-shenzhen.aliyuncs.com
+    eventBusName: color-change-event-bus
+
+resilience4j:
+  ratelimiter:
+    instances:
+      randomColor:
+        limitForPeriod: 1
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+        registerHealthIndicator: true
