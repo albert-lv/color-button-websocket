@@ -119,7 +119,7 @@
         }
 
         // WebSocket Connection
-        const socket = new WebSocket('ws://' + window.location.host + '/color-button/color-websocket');
+        const socket = new WebSocket('ws://' + window.location.host + '/color-websocket');
 
         socket.onopen = function(event) {
             statusDiv.textContent = 'WebSocket Status: Connected';
@@ -155,7 +155,7 @@
         // REST API Functions
         async function getCurrentColor() {
             try {
-                const response = await fetch('/color-button/api/color/current');
+                const response = await fetch('/api/color/current');
                 const data = await response.json();
                 addLogEntry(`Current color (via REST): ${data.color}`);
             } catch (error) {
@@ -165,7 +165,7 @@
 
         async function triggerNextColor() {
             try {
-                const response = await fetch('/color-button/api/color/next', { method: 'POST' });
+                const response = await fetch('/api/color/next', { method: 'POST' });
                 const data = await response.json();
                 addLogEntry(`Triggered next color (via REST): ${data.color}`);
             } catch (error) {
@@ -175,7 +175,7 @@
 
         async function triggerRandomColor() {
             try {
-                const response = await fetch('/color-button/api/color/random', { method: 'POST' });
+                const response = await fetch('/api/color/random', { method: 'POST' });
                 const data = await response.json();
                 addLogEntry(`Triggered random color event (via EventBridge): ${data.color}`);
             } catch (error) {
